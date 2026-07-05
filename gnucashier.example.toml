@@ -1,0 +1,28 @@
+# GnuCashier configuration — copy to `gnucashier.toml` and fill in your accounts.
+# `gnucashier.toml` is gitignored (it holds your real account numbers and book
+# paths); this example uses placeholders.
+
+[brokers.alfa]
+# Subtree whose securities are expected to carry ISINs (checked before import).
+broker_root = "Assets:MyBroker:Brokerage Accounts"
+# Where trade commissions and coupon income (incl. accrued interest) are booked.
+commission_account = "Expenses:Fees & Charges:Brokerage:MyBroker"
+coupon_account = "Income:Coupons"
+# Optional overrides (defaults shown):
+# commodity_namespace = "MOEX"
+# cash_leaf = "Cash"
+# bond_fraction = 10000
+# default_fraction = 1
+
+# One entry per brokerage sub-account: its number, settlement currency, and the
+# base account path in your book. Securities are created under
+# <path>/{Bonds,Funds,Stocks}; cash is <path>/<cash_leaf>.
+[[brokers.alfa.subaccount]]
+account = "1234567"
+currency = "RUB"
+path = "Assets:MyBroker:Brokerage Accounts:RUB 1234567"
+
+[[brokers.alfa.subaccount]]
+account = "7654321"
+currency = "RUB"
+path = "Assets:MyBroker:Brokerage Accounts:RUB 7654321"

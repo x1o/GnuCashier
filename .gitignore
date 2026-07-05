@@ -1,0 +1,37 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# macOS
+.DS_Store
+
+# Personal import-run notebooks (real paths + financial data in outputs).
+# Dated by year/month; poc.ipynb uses only test fixtures and stays tracked.
+20*.ipynb
+
+# Real financial data — never commit
+imports/
+books/Personal.gnucash
+*.backup.gnucash
+
+# Private account mapping (numbers + book paths); ship gnucashier.example.toml
+gnucashier.toml
+
+# GnuCash books / exports dropped at the repo root (real data). Test fixtures
+# under books/ are tracked; these root-level patterns don't touch them.
+/*.gnucash
+/*.xac
+
+# GnuCash runtime artifacts (backups, logs, lock files)
+*.gnucash.*.gnucash
+*.xac.*.log
+*.gnucash.*.log
+.LCK
+*.LCK

@@ -1,0 +1,16 @@
+# Keep the build context small and free of private data. The image installs deps
+# from pyproject.toml and bind-mounts the code/book at run time, so nothing here
+# is needed at build time.
+.git/
+.venv/
+__pycache__/
+*.py[co]
+
+# Private / large — never send to the build daemon
+gnucashier.toml
+imports/
+books/
+*.gnucash
+*.backup*
+*.ipynb
+.DS_Store
