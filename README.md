@@ -31,11 +31,22 @@ on macOS; identical on Linux).
 docker build -t gnucashier .        # or let ./gnucashier-docker.sh build on first use
 ```
 
-**Linux (native):**
+**Linux (native):** the `gnucash` module isn't on PyPI, so the venv must see the
+system `python3-gnucash` — create it with `--system-site-packages` (a plain
+`uv sync` makes an isolated venv where `import gnucash` fails):
 ```bash
 sudo apt-get install gnucash python3-gnucash
-uv sync                             # bindings come from the system Python
+uv venv --system-site-packages      # venv can see system python3-gnucash
+uv sync                             # install GnuCashier + its PyPI deps (keeps the flag)
+
+# the bindings' shared libs aren't on the default loader path, so export this
+# (validate needs no bindings; import/backfill/merge do):
+export LD_LIBRARY_PATH=/usr/lib/$(uname -m)-linux-gnu/gnucash
+uv run gnucashier backfill <book> <report>
 ```
+If you ever see `ModuleNotFoundError: No module named 'gnucash'`, your `.venv`
+was created isolated — `rm -rf .venv` and redo the `uv venv --system-site-packages`
+step. (Docker sidesteps all of this.)
 
 ## Configure
 
