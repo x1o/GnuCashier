@@ -11,7 +11,7 @@ coupon_account = "Income:Coupons"
 # Optional overrides (defaults shown):
 # commodity_namespace = "MOEX"
 # cash_leaf = "Cash"
-# bond_fraction = 10000
+# bond_fraction = 1
 # default_fraction = 1
 
 # One entry per brokerage sub-account: its number, settlement currency, and the

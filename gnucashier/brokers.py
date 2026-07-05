@@ -36,7 +36,7 @@ class Broker:
     coupon_account: str = "Income:Coupons"         # coupons + accrued interest
     commodity_namespace: str = "MOEX"
     cash_leaf: str = "Cash"
-    bond_fraction: int = 10000
+    bond_fraction: int = 1          # bonds trade in whole units
     default_fraction: int = 1
 
     def subtree_base(self, account: str, currency: str) -> str:
