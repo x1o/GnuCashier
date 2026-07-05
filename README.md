@@ -8,6 +8,9 @@ review a dry run, confirm, and it merges the transactions in.
 Built on the official `python3-gnucash` bindings, so it drives GnuCash's own
 object model rather than editing files by hand.
 
+For the report format, accounting model, instrument-resolution logic, and
+maintenance notes, see [docs/DESIGN.md](docs/DESIGN.md).
+
 ## Sources
 
 | Source | Subcommand | Notes |
