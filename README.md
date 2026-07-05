@@ -131,6 +131,12 @@ gnucashier/
   setting), so the pre-import state is kept. There's still **no duplicate
   detection** — importing the same source twice imports it twice; pick
   non-overlapping periods (broker periods overlap at the edges, e.g. `01.06–04.07`).
+- **Opening balances**: only the period's activity is posted. If a bond held at
+  the period start lands in a *new* account (your book tracks it under a different
+  name/commodity, or not at all), that account starts from zero — so period sells
+  make it negative. The dry run **warns** for each such account (with the starting
+  quantity) so you can reconcile it (redirect to the existing account, or add an
+  opening balance) instead of getting a surprise negative holding.
 - Realized gain/loss on sells isn't booked (reports carry no cost basis); a sell's
   security value is the proceeds. Prices aren't written to the price DB.
 - Unmodeled cash operations (deposits, taxes, dividends, FX) are reported as

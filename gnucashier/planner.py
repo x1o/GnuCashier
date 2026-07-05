@@ -95,7 +95,14 @@ class _Planner:
             self.plan.commodities.append(spec)
         return key
 
-    def _resolve_security_account(self, base: str, category: str, key: CommodityKey) -> str:
+    def _held_start_qty(self, report: Report, isin: str) -> Decimal:
+        for h in report.holdings:
+            if h.isin == isin:
+                return h.start_qty
+        return Decimal(0)
+
+    def _resolve_security_account(self, base: str, category: str, key: CommodityKey,
+                                  report: Report, trade: Trade) -> str:
         existing = self.idx.find_security_account(base, key)
         if existing:
             return existing
@@ -108,6 +115,18 @@ class _Planner:
         spec = AccountSpec(path, acct_type, key)
         self._new_accounts[path] = spec
         self.plan.accounts.append(spec)
+        # A position held at the start of the period landing in a brand-new account
+        # means only this period's activity posts here (no opening balance) — the
+        # instrument is probably already held under a different account/commodity.
+        held = self._held_start_qty(report, trade.isin)
+        if held:
+            qty = f"{held:f}".rstrip("0").rstrip(".")
+            self.plan.warnings.append(
+                f"[{report.account}] new account for a position held at period start "
+                f"(start qty {qty}): {trade.asset} — reconcile: you likely already "
+                f"hold it under a different account/commodity, or its opening balance "
+                f"is missing."
+            )
         return path
 
     def _require_account(self, path: str):
@@ -121,7 +140,7 @@ class _Planner:
         base = self.broker.subtree_base(report.account, trade.currency)
         category = self._category(report, trade)
         key = self._resolve_commodity(trade.isin, trade.asset, category)
-        sec_acct = self._resolve_security_account(base, category, key)
+        sec_acct = self._resolve_security_account(base, category, key, report, trade)
         cash_acct = f"{base}:{self.broker.cash_leaf}"
         self._require_account(cash_acct)
 
