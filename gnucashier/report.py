@@ -53,6 +53,7 @@ def format_dry_run(reports: list[Report], plan: Plan,
     add(f"Commodities to create:      {len(plan.commodities)}")
     add(f"Accounts to create:         {len(plan.accounts)}")
     add(f"Transactions to import:     {len(plan.transactions)}")
+    add(f"Prices to add:              {len(plan.prices)}")
     add(f"Commodities w/o ISIN:       {len(isin_fillable)} fillable, {len(isin_unfillable)} other")
     add(f"Warnings:                   {len(plan.warnings)}")
     add("")

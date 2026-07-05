@@ -185,9 +185,36 @@ class BrokerImporter:
                 print(f"  {i}/{len(self.plan.transactions)}")
         print(f"✓ Imported {len(self.plan.transactions)} transactions\n")
 
+        self._add_prices(table)
+
         print("Saving book...")
         self.session.save()
         print("✓ Saved")
+
+    def _add_prices(self, table):
+        """Add a clean per-unit price per traded commodity so GnuCash can value
+        the holdings (it prices portfolios from the price DB)."""
+        if not self.plan.prices:
+            return
+        import calendar
+        from gnucash import GncPrice
+        pdb = self.book.get_price_db()
+        print(f"Adding {len(self.plan.prices)} prices...")
+        for ps in self.plan.prices:
+            comm = table.lookup(ps.commodity_key[0], ps.commodity_key[1])
+            currency = table.lookup("CURRENCY", ps.currency)
+            if comm is None or currency is None:
+                continue
+            d = ps.date
+            price = GncPrice(self.book)
+            price.set_commodity(comm)
+            price.set_currency(currency)
+            price.set_value(_num(ps.price, 1_000_000))
+            price.set_time64(calendar.timegm((d.year, d.month, d.day, 12, 0, 0, 0, 0, 0)))
+            price.set_source_string("user:price")
+            price.set_typestr("transaction")
+            pdb.add_price(price)
+        print(f"✓ Added {len(self.plan.prices)} prices")
 
     def ask_confirmation(self) -> bool:
         print("\nProceed with the import? (yes/no): ", end="")
@@ -204,7 +231,7 @@ class BrokerImporter:
                 print(f"{len(self.isin_fillable)} existing commodity(ies) can be ISIN-tagged from "
                       "these reports.\nImporting now risks creating duplicates. Run the one-time "
                       "backfill first:\n")
-                print("  python -m broker.backfill <book.gnucash> <report.zip>\n")
+                print("  gnucashier backfill <book.gnucash> <report.zip>\n")
                 print("then re-run the import. (Override with require_isins=False / --force.)")
                 return
             if confirm and not self.ask_confirmation():
@@ -212,5 +239,30 @@ class BrokerImporter:
                 return
             print("\nStarting import...\n")
             self.execute()
+        finally:
+            self.close_session()
+
+    def run_prices(self, confirm: bool = True):
+        """Add/refresh price-DB entries only (no transactions) — e.g. to fix a
+        book imported before price-writing existed."""
+        try:
+            self.open_session()
+            self.reports = [self.broker.parse(p) for p in self.report_paths]
+            idx = self._build_index()
+            self.plan = build_plan(self.reports, idx, self.broker)
+            print(f"Prices to add/refresh ({len(self.plan.prices)}):")
+            for ps in self.plan.prices:
+                print(f"  • {ps.commodity_key[1]}  {ps.date.date()}  {ps.price:f} {ps.currency}")
+            if not self.plan.prices:
+                return
+            if confirm:
+                print("\nAdd these prices? (yes/no): ", end="")
+                if input().strip().lower() not in ("yes", "y"):
+                    print("Cancelled.")
+                    return
+            self._add_prices(self.book.get_table())
+            print("Saving book...")
+            self.session.save()
+            print("✓ Saved")
         finally:
             self.close_session()

@@ -72,6 +72,18 @@ def backfill(book: Book, reports: Reports, broker: BrokerOpt = None, config: Con
 
 
 @app.command()
+def prices(book: Book, reports: Reports, broker: BrokerOpt = None, config: ConfigOpt = None):
+    """Add/refresh price-DB entries for the report's instruments (no transactions).
+
+    Useful to value holdings imported before price-writing existed.
+    """
+    from .config import load_broker
+    from .importer import BrokerImporter
+    b = _resolve_broker(broker, config)
+    BrokerImporter(str(book), [str(r) for r in reports], b).run_prices()
+
+
+@app.command()
 def validate(book: Book, reports: Reports, broker: BrokerOpt = None, config: ConfigOpt = None):
     """Check report(s) against the broker's own control totals (no bindings needed)."""
     from .bookindex import XmlBookIndex

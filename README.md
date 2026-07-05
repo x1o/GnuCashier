@@ -138,7 +138,9 @@ gnucashier/
   quantity) so you can reconcile it (redirect to the existing account, or add an
   opening balance) instead of getting a surprise negative holding.
 - Realized gain/loss on sells isn't booked (reports carry no cost basis); a sell's
-  security value is the proceeds. Prices aren't written to the price DB.
+  security value is the proceeds. A clean per-unit price *is* written to the price
+  DB per traded instrument (dated at the trade), so GnuCash can value the holdings;
+  run Finance::Quote for up-to-date marks.
 - Unmodeled cash operations (deposits, taxes, dividends, FX) are reported as
   warnings and skipped, never silently dropped.
 - `gnucashier.toml`, `imports/`, and `books/Personal.gnucash` are gitignored —

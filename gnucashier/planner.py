@@ -52,10 +52,19 @@ class TransactionSpec:
 
 
 @dataclass
+class PriceSpec:
+    commodity_key: CommodityKey
+    currency: str
+    date: datetime
+    price: Decimal                 # clean per-unit price in `currency`
+
+
+@dataclass
 class Plan:
     commodities: list[CommoditySpec] = field(default_factory=list)
     accounts: list[AccountSpec] = field(default_factory=list)
     transactions: list[TransactionSpec] = field(default_factory=list)
+    prices: list[PriceSpec] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
 
@@ -66,6 +75,8 @@ class _Planner:
         self.plan = Plan()
         self._new_commodities: dict[CommodityKey, CommoditySpec] = {}
         self._new_accounts: dict[str, AccountSpec] = {}
+        # latest trade price per commodity, so GnuCash can value the holding
+        self._latest_price: dict[CommodityKey, tuple[datetime, Decimal, str]] = {}
 
     # ---- instrument resolution ----
     def _category(self, report: Report, trade: Trade) -> str:
@@ -144,6 +155,12 @@ class _Planner:
         cash_acct = f"{base}:{self.broker.cash_leaf}"
         self._require_account(cash_acct)
 
+        # Record the clean per-unit price so GnuCash can value the holding
+        # (it prices portfolios from the price DB, which the report doesn't fill).
+        prev = self._latest_price.get(key)
+        if prev is None or trade.trade_dt >= prev[0]:
+            self._latest_price[key] = (trade.trade_dt, trade.unit_price, trade.currency)
+
         sign = Decimal(1) if trade.is_buy else Decimal(-1)
         principal, nkd, comm = trade.principal, trade.nkd, trade.commission
 
@@ -202,6 +219,8 @@ class _Planner:
                 self.plan.transactions.append(txn)
             for coupon in report.coupons:
                 self.plan.transactions.append(self._coupon_txn(report, coupon))
+        self.plan.prices = [PriceSpec(key, cur, dt, price)
+                            for key, (dt, price, cur) in self._latest_price.items()]
         return self.plan
 
 
